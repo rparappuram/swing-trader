@@ -182,7 +182,8 @@ class Order:
         except ValueError:
             status = OrderStatus.NEW
         
-        # Convert trail_percent from Alpaca's whole number (5.0) to decimal (0.05) for internal use
+        # PERCENTAGE CONVERSION: Alpaca whole number (5.0) → Internal decimal (0.05)
+        # Convert from Alpaca's format to our internal decimal format
         trail_percent_decimal = None
         if alpaca_order.trail_percent is not None:
             trail_percent_decimal = float(alpaca_order.trail_percent) / 100

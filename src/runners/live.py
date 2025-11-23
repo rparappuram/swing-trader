@@ -86,6 +86,7 @@ class LiveRunner:
                 print("-"*80)
                 for pos in positions:
                     pnl = float(pos.unrealized_pl)
+                    # Convert from decimal (0.05) to percent (5%) for display
                     pnl_percent = float(pos.unrealized_plpc) * 100
                     pnl_sign = "+" if pnl >= 0 else ""
                     print(f"  {pos.symbol:6s} | Qty: {int(pos.qty):4d} | "

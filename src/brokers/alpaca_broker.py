@@ -86,7 +86,8 @@ class AlpacaBroker:
                     limit_price=order.limit_price
                 )
             elif isinstance(order, TrailingStopOrder):
-                # Convert trail_percent from decimal (0.05) to whole number (5.0) for Alpaca
+                # PERCENTAGE CONVERSION: Internal decimal (0.05) → Alpaca whole number (5.0)
+                # Alpaca API expects trail_percent as whole number (5.0 = 5%)
                 trail_percent_alpaca = order.trail_percent * 100 if order.trail_percent is not None else None
                 alpaca_request = AlpacaTrailingStopOrderRequest(
                     symbol=order.symbol,

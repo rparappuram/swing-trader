@@ -109,7 +109,11 @@ class StopLimitOrder(OrderRequest):
 
 
 class TrailingStopOrder(OrderRequest):
-    """Trailing stop order request."""
+    """Trailing stop order request.
+    
+    Note: trail_percent should be specified in DECIMAL format (0.05 = 5%).
+    The broker will automatically convert to Alpaca's whole number format.
+    """
     
     def __init__(self, symbol: str, qty: int, side: OrderSide,
                  trail_percent: Optional[float] = None,
@@ -122,6 +126,7 @@ class TrailingStopOrder(OrderRequest):
         if trail_percent is not None and trail_price is not None:
             raise ValueError("Cannot set both trail_percent and trail_price")
         
+        # Store in decimal format (0.05 = 5%)
         self.trail_percent = trail_percent
         self.trail_price = trail_price
         self.order_type = OrderType.TRAILING_STOP
@@ -129,7 +134,11 @@ class TrailingStopOrder(OrderRequest):
 
 @dataclass
 class Order:
-    """Represents an order (response from broker)."""
+    """Represents an order (response from broker).
+    
+    Note: trail_percent is stored in DECIMAL format (0.05 = 5%), converted from
+    Alpaca's whole number format for consistency with internal usage.
+    """
     id: str
     symbol: str
     qty: int
@@ -140,7 +149,7 @@ class Order:
     filled_avg_price: Optional[float]
     limit_price: Optional[float]
     stop_price: Optional[float]
-    trail_percent: Optional[float]
+    trail_percent: Optional[float]  # Decimal format: 0.05 = 5%
     trail_price: Optional[float]
     submitted_at: datetime
     filled_at: Optional[datetime]
@@ -173,6 +182,11 @@ class Order:
         except ValueError:
             status = OrderStatus.NEW
         
+        # Convert trail_percent from Alpaca's whole number (5.0) to decimal (0.05) for internal use
+        trail_percent_decimal = None
+        if alpaca_order.trail_percent is not None:
+            trail_percent_decimal = float(alpaca_order.trail_percent) / 100
+        
         return cls(
             id=alpaca_order.id,
             symbol=alpaca_order.symbol,
@@ -184,7 +198,7 @@ class Order:
             filled_avg_price=float(alpaca_order.filled_avg_price) if alpaca_order.filled_avg_price else None,
             limit_price=float(alpaca_order.limit_price) if alpaca_order.limit_price else None,
             stop_price=float(alpaca_order.stop_price) if alpaca_order.stop_price else None,
-            trail_percent=float(alpaca_order.trail_percent) if alpaca_order.trail_percent else None,
+            trail_percent=trail_percent_decimal,
             trail_price=float(alpaca_order.trail_price) if alpaca_order.trail_price else None,
             submitted_at=alpaca_order.submitted_at,
             filled_at=alpaca_order.filled_at,

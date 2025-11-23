@@ -86,12 +86,14 @@ class AlpacaBroker:
                     limit_price=order.limit_price
                 )
             elif isinstance(order, TrailingStopOrder):
+                # Convert trail_percent from decimal (0.05) to whole number (5.0) for Alpaca
+                trail_percent_alpaca = order.trail_percent * 100 if order.trail_percent is not None else None
                 alpaca_request = AlpacaTrailingStopOrderRequest(
                     symbol=order.symbol,
                     qty=order.qty,
                     side=order.to_alpaca_side(),
                     time_in_force=order.to_alpaca_tif(),
-                    trail_percent=order.trail_percent,
+                    trail_percent=trail_percent_alpaca,
                     trail_price=order.trail_price
                 )
             else:

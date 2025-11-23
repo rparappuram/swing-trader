@@ -27,8 +27,9 @@ class BaseStrategy(bt.Strategy):
     
     # Default parameters - subclasses should override
     params = (
-        ('ticker', None),  # Ticker symbol to trade
-        ('trailing_stop_percent', None),  # Trailing stop percentage (optional)
+        ('tickers', []),  # List of tickers to trade
+        ('position_pct', 1.0),  # Percentage of portfolio to allocate per position
+        ('trailing_stop_percent', 0.01),  # Trailing stop percentage (optional)
     )
     
     def __init__(self):

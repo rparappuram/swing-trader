@@ -50,6 +50,7 @@ class ConfigLoader:
         # Map strategy names to their modules and classes
         strategy_map = {
             'SMAStrategy': ('src.strategies.example_sma', 'SMAStrategy'),
+            'AlwaysBuyStrategy': ('src.strategies.test_strategy', 'AlwaysBuyStrategy'),
         }
         
         if strategy_name not in strategy_map:
@@ -96,17 +97,14 @@ class ConfigLoader:
         if hasattr(strategy_class, 'params'):
             # params is a tuple of tuples: (('name', default_value), ...)
             params_tuple = getattr(strategy_class.params, '_gettuple', lambda: strategy_class.params)()
-            params_dict = {name: value for name, value in params_tuple if name != 'ticker'}
+            params_dict = {name: value for name, value in params_tuple}
         
         strategy_config = {
             'name': getattr(strategy_class, 'NAME', strategy_name),
             'module': strategy_class.__module__,
             'class': strategy_class.__name__,
-            'tickers': getattr(strategy_class, 'DEFAULT_TICKERS', []),
-            'lookback_days': getattr(strategy_class, 'LOOKBACK_DAYS', 30),
             'params': params_dict,
             'optimize_params': getattr(strategy_class, 'OPTIMIZE_PARAMS', {}),
-            'enabled': True,
         }
         
         self._strategies.append(strategy_config)

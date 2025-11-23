@@ -366,7 +366,7 @@ class OptimizationRunner:
                 break
         
         if not strategy_config:
-            raise ValueError(f"Strategy '{strategy_name}' not found or not enabled")
+            raise ValueError(f"Strategy '{strategy_name}' not found")
         
         # Get parameter ranges from strategy config
         param_ranges = strategy_config.get('optimize_params', {})

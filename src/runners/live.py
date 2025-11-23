@@ -62,7 +62,43 @@ class LiveRunner:
             paper=alpaca_config.get('paper', True)
         )
         
-        logger.info("Live runner initialized") 
+        logger.info("Live runner initialized")
+    
+    def display_portfolio_status(self):
+        """Display current portfolio status including account info and positions."""
+        try:
+            # Get account info
+            account = self.broker.get_account()
+            
+            print("\n" + "="*80)
+            print("PORTFOLIO STATUS")
+            print("="*80)
+            print(f"Account Type: {'PAPER' if self.broker.paper else 'LIVE'}")
+            print(f"Portfolio Value: ${float(account.portfolio_value):,.2f}")
+            print(f"Cash: ${float(account.cash):,.2f}")
+            print(f"Buying Power: ${float(account.buying_power):,.2f}")
+            
+            # Get positions
+            positions = self.broker.get_positions()
+            
+            if positions:
+                print(f"\nOpen Positions: {len(positions)}")
+                print("-"*80)
+                for pos in positions:
+                    pnl = float(pos.unrealized_pl)
+                    pnl_pct = float(pos.unrealized_plpc) * 100
+                    pnl_sign = "+" if pnl >= 0 else ""
+                    print(f"  {pos.symbol:6s} | Qty: {int(pos.qty):4d} | "
+                          f"Avg: ${float(pos.avg_entry_price):7.2f} | "
+                          f"Current: ${float(pos.current_price):7.2f} | "
+                          f"P&L: {pnl_sign}${pnl:,.2f} ({pnl_sign}{pnl_pct:.2f}%)")
+            else:
+                print("\nOpen Positions: 0")
+            
+            print("="*80 + "\n")
+            
+        except Exception as e:
+            logger.error(f"Error fetching portfolio status: {e}")
     
     def load_strategy_class(self, module_path: str, class_name: str):
         """Dynamically load a strategy class.
@@ -108,9 +144,9 @@ class LiveRunner:
         }
         
         # Process each ticker
-        tickers = strategy_config.get('tickers', [])
-        # Get max lookback days across all strategies
-        lookback_days = self.config_loader.get_max_lookback_days()
+        params = strategy_config.get('params', {})
+        tickers = params.get('tickers', [])
+        lookback_days = params.get('lookback_days', 30)
         
         for ticker in tickers:
             try:
@@ -230,11 +266,11 @@ class LiveRunner:
         
         try:
             if action == 'buy':
-                # Calculate position size
+                # Calculate position size from signal (strategy calculates this)
                 account = self.broker.get_account()
                 cash = account.cash
-                position_pct = self.live_config.get('position_size', 0.2)
-                position_value = cash * position_pct
+                # Use position size from signal if provided, otherwise calculate from price
+                position_value = signal.get('size', 1) * signal['price']
                 
                 price = signal['price']
                 qty = int(position_value / price)
@@ -308,6 +344,9 @@ class LiveRunner:
         Returns:
             List of execution results for each strategy
         """
+        # Display portfolio status first
+        self.display_portfolio_status()
+        
         strategies = self.config_loader.get_strategies()
         
         if not strategies:

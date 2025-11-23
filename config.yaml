@@ -18,7 +18,6 @@ backtest:
 # Live trading settings
 live:
   max_positions: 5  # Maximum number of concurrent positions
-  position_size: 0.2  # 20% of portfolio per position
 
 # Note: Strategy configuration (tickers, params, optimize ranges) is now defined
 #       in the strategy class itself (see src/strategies/example_sma.py)

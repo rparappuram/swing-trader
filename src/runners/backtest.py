@@ -116,7 +116,8 @@ class BacktestRunner:
         cerebro.addstrategy(strategy_class, **strategy_params)
         
         # Load data for each ticker
-        tickers = strategy_config.get('tickers', [])
+        params = strategy_config.get('params', {})
+        tickers = params.get('tickers', [])
         
         for ticker in tickers:
             # Data loading handled by DataManager
@@ -217,7 +218,7 @@ class BacktestRunner:
                 break
         
         if not strategy_config:
-            raise ValueError(f"Strategy '{strategy_name}' not found or not enabled")
+            raise ValueError(f"Strategy '{strategy_name}' not found")
         
         logger.info("\n" + "="*80)
         logger.info(f"Backtest: {strategy_config['name']}")

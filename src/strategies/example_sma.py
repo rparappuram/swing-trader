@@ -20,8 +20,6 @@ class SMAStrategy(BaseStrategy):
     
     # Strategy configuration
     NAME = "SMAStrategy"
-    DEFAULT_TICKERS = ["SPY"]
-    LOOKBACK_DAYS = 60
     
     # Optimization parameter ranges
     OPTIMIZE_PARAMS = {
@@ -32,11 +30,12 @@ class SMAStrategy(BaseStrategy):
     
     # Default parameters (backtrader format)
     params = (
-        ('ticker', 'SPY'),
+        ('tickers', ['SPY']),
+        ('lookback_days', 60),
+        ('position_pct', 1.0),  # Use 100% of available cash per position
         ('fast_period', 10),
         ('slow_period', 30),
         ('trailing_stop_percent', 1.0),
-        ('position_pct', 0.95),
     )
     
     def __init__(self):

@@ -104,6 +104,11 @@ class BacktestRunner:
         # Initialize cerebro engine
         cerebro = bt.Cerebro()
         
+        # Enable cheat-on-close mode to simulate live trading at market close
+        # Orders placed during a bar execute at that bar's close price (same bar execution)
+        # This matches live trading where we run the strategy at market close and execute immediately
+        cerebro.broker.set_coc(True)
+        
         # Set initial cash and commission from config
         initial_cash = self.backtest_config.get('initial_cash', 100000.0)
         commission = self.backtest_config.get('commission', 0.001)

@@ -117,6 +117,11 @@ class OptimizationRunner:
         # Initialize cerebro for optimization
         cerebro = bt.Cerebro()
         
+        # Enable cheat-on-close mode to simulate live trading at market close
+        # Orders placed during a bar execute at that bar's close price (same bar execution)
+        # This matches live trading where we run the strategy at market close and execute immediately
+        cerebro.broker.set_coc(True)
+        
         # Set initial cash and commission
         initial_cash = self.backtest_config.get('initial_cash', 100000.0)
         commission = self.backtest_config.get('commission', 0.001)
@@ -285,76 +290,6 @@ class OptimizationRunner:
         
         print("\n" + "="*80 + "\n")
 
-    def run_backtest_with_best_params(self, strategy_config: Dict[str, Any], 
-                                      best_params: Dict[str, Any],
-                                      start_date: datetime, end_date: datetime):
-        """Run a backtest with the best parameters and generate a plot.
-        
-        Args:
-            strategy_config: Strategy configuration
-            best_params: Best parameter combination from optimization
-            start_date: Backtest start date
-            end_date: Backtest end date
-        """
-        logger.info("\n" + "="*80)
-        logger.info("Backtesting optimal parameters")
-        logger.info(f"Parameters: {best_params}")
-        logger.info("="*80)
-        
-        # Load strategy class
-        strategy_class = self.load_strategy_class(
-            strategy_config['module'],
-            strategy_config['class']
-        )
-        
-        # Initialize cerebro
-        cerebro = bt.Cerebro()
-        
-        # Set initial cash and commission
-        initial_cash = self.backtest_config.get('initial_cash', 100000.0)
-        commission = self.backtest_config.get('commission', 0.001)
-        
-        cerebro.broker.setcash(initial_cash)
-        cerebro.broker.setcommission(commission=commission)
-        
-        # Add strategy with best parameters
-        cerebro.addstrategy(strategy_class, **best_params)
-        
-        # Load data for each ticker
-        tickers = strategy_config.get('tickers', [])
-        
-        for ticker in tickers:
-            # Data loading handled by DataManager
-            
-            daily_df = self.data_manager.get_data_for_backtest(
-                ticker, start_date, end_date, timeframe='daily'
-            )
-            
-            if daily_df.empty:
-                logger.error(f"No daily data available for {ticker}, skipping")
-                continue
-            
-            daily_feed = self.data_manager.create_backtrader_feed(daily_df, ticker)
-            cerebro.adddata(daily_feed, name=ticker)
-        
-        # Add analyzers for display
-        cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
-        cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
-        cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
-        cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='trades')
-        
-        # Run backtest
-        initial_value = cerebro.broker.getvalue()
-        logger.info(f"Initial value: ${initial_value:,.2f}")
-        results = cerebro.run()
-        final_value = cerebro.broker.getvalue()
-        logger.info(f"Final value: ${final_value:,.2f} ({(final_value - initial_value) / initial_value * 100:+.2f}%)")
-        
-        # Generate plot with best parameters
-        logger.info("Generating plot for optimal parameters...")
-        cerebro.plot()
-
-
     def run(self) -> List[Dict[str, Any]]:
         """Run optimization for the strategy specified in config.
         
@@ -390,19 +325,6 @@ class OptimizationRunner:
         logger.info("="*80)
         
         results = self.optimize_strategy(strategy_config, param_ranges, 'return')
-        
-        # Run backtest with best parameters and generate plot
-        if results:
-            best_result = results[0]
-            best_params = best_result['params']
-            
-            # Get dates from config
-            start_str = self.backtest_config.get('start_date')
-            end_str = self.backtest_config.get('end_date')
-            start_date = datetime.strptime(start_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-            end_date = datetime.strptime(end_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-            
-            self.run_backtest_with_best_params(strategy_config, best_params, start_date, end_date)
         
         return results
 

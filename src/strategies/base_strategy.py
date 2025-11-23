@@ -78,21 +78,29 @@ class BaseStrategy(bt.Strategy):
             is_trailing_stop = order.ref in self.trailing_stop_order_ids
             
             if order.isbuy():
+                cash_before = self.broker.getcash() + order.executed.value + order.executed.comm
+                cash_after = self.broker.getcash()
                 if is_trailing_stop:
                     self.log(f'TRAILING STOP HIT (BUY) - Price: ${order.executed.price:,.2f}, '
-                            f'Cost: ${order.executed.value:,.2f}, Comm: ${order.executed.comm:.2f}')
+                            f'Shares: {order.executed.size}, Cost: ${order.executed.value:,.2f}, '
+                            f'Comm: ${order.executed.comm:.2f}, Cash Before: ${cash_before:,.2f}, Cash After: ${cash_after:,.2f}')
                 else:
                     self.log(f'BUY EXECUTED - Price: ${order.executed.price:,.2f}, '
-                            f'Cost: ${order.executed.value:,.2f}, Comm: ${order.executed.comm:.2f}')
+                            f'Shares: {order.executed.size}, Cost: ${order.executed.value:,.2f}, '
+                            f'Comm: ${order.executed.comm:.2f}, Cash Before: ${cash_before:,.2f}, Cash After: ${cash_after:,.2f}')
                 self.entry_price = order.executed.price
                 
             elif order.issell():
+                cash_before = self.broker.getcash() - order.executed.value + order.executed.comm
+                cash_after = self.broker.getcash()
                 if is_trailing_stop:
                     self.log(f'TRAILING STOP HIT (SELL) - Price: ${order.executed.price:,.2f}, '
-                            f'Cost: ${order.executed.value:,.2f}, Comm: ${order.executed.comm:.2f}')
+                            f'Shares: {order.executed.size}, Proceeds: ${order.executed.value:,.2f}, '
+                            f'Comm: ${order.executed.comm:.2f}, Cash Before: ${cash_before:,.2f}, Cash After: ${cash_after:,.2f}')
                 else:
                     self.log(f'SELL EXECUTED - Price: ${order.executed.price:,.2f}, '
-                            f'Cost: ${order.executed.value:,.2f}, Comm: ${order.executed.comm:.2f}')
+                            f'Shares: {order.executed.size}, Proceeds: ${order.executed.value:,.2f}, '
+                            f'Comm: ${order.executed.comm:.2f}, Cash Before: ${cash_before:,.2f}, Cash After: ${cash_after:,.2f}')
                 self.entry_price = None
             
             # Clean up order tracking
@@ -101,7 +109,24 @@ class BaseStrategy(bt.Strategy):
             self.order_types.pop(order.ref, None)
         
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log('Order Canceled/Margin/Rejected')
+            # Determine the status type
+            if order.status == order.Canceled:
+                status_text = "CANCELED"
+            elif order.status == order.Margin:
+                status_text = "MARGIN"
+            else:
+                status_text = "REJECTED"
+            
+            # Get order details
+            order_type = "BUY" if order.isbuy() else "SELL"
+            current_price = self.datas[0].close[0]
+            available_cash = self.broker.getcash()
+            position_value = self.broker.getvalue() - available_cash
+            
+            self.log(f'ORDER {status_text} - Type: {order_type}, Size: {order.created.size}, '
+                    f'Current Price: ${current_price:,.2f}, Available Cash: ${available_cash:,.2f}, '
+                    f'Position Value: ${position_value:,.2f}, Portfolio Value: ${self.broker.getvalue():,.2f}')
+            
             # Clean up tracking for canceled/rejected orders
             self.trailing_stop_order_ids.discard(order.ref)
             self.order_types.pop(order.ref, None)
@@ -179,6 +204,11 @@ class BaseStrategy(bt.Strategy):
         if size is None:
             size = self.get_position_size()
         
+        # Log order details before placing
+        current_price = self.datas[0].close[0]
+        available_cash = self.broker.getcash()
+        estimated_cost = (size * current_price) if size else 0
+        
         # Place the buy order
         if exectype and price:
             self.order = self.buy(exectype=exectype, price=price, size=size)
@@ -189,7 +219,8 @@ class BaseStrategy(bt.Strategy):
         if self.order:
             self.order_types[self.order.ref] = 'buy'
         
-        self.log(f'BUY ORDER PLACED - Shares: {size or 0:,}')
+        self.log(f'BUY ORDER PLACED - Shares: {size or 0:,}, Price: ${current_price:,.2f}, '
+                f'Est. Cost: ${estimated_cost:,.2f}, Available Cash: ${available_cash:,.2f}')
     
     def place_sell_order(self, exectype=None, price=None, size=None):
         """Place a sell order.

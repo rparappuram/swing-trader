@@ -240,7 +240,7 @@ class OptimizationRunner:
             win_rate = result['win_rate']
             
             pnl = final_value - initial_cash
-            return_pct = total_return * 100
+            return_percent = total_return * 100
             
             print(f"\n#{i}")
             print("-" * 80)
@@ -248,7 +248,7 @@ class OptimizationRunner:
             print(f"\nPerformance:")
             print(f"  Final Portfolio Value:  ${final_value:,.2f}")
             print(f"  P&L:                    ${pnl:+,.2f}")
-            print(f"  Total Return:           {return_pct:+.2f}%")
+            print(f"  Total Return:           {return_percent:+.2f}%")
             
             if sharpe is not None:
                 print(f"  Sharpe Ratio:           {sharpe:.3f}")

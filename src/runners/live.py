@@ -86,12 +86,12 @@ class LiveRunner:
                 print("-"*80)
                 for pos in positions:
                     pnl = float(pos.unrealized_pl)
-                    pnl_pct = float(pos.unrealized_plpc) * 100
+                    pnl_percent = float(pos.unrealized_plpc) * 100
                     pnl_sign = "+" if pnl >= 0 else ""
                     print(f"  {pos.symbol:6s} | Qty: {int(pos.qty):4d} | "
                           f"Avg: ${float(pos.avg_entry_price):7.2f} | "
                           f"Current: ${float(pos.current_price):7.2f} | "
-                          f"P&L: {pnl_sign}${pnl:,.2f} ({pnl_sign}{pnl_pct:.2f}%)")
+                          f"P&L: {pnl_sign}${pnl:,.2f} ({pnl_sign}{pnl_percent:.2f}%)")
             else:
                 print("\nOpen Positions: 0")
             

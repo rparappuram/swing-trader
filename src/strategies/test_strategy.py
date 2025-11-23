@@ -21,7 +21,7 @@ class AlwaysBuyStrategy(BaseStrategy):
     params = (
         ('tickers', ['SIRI']),
         ('lookback_days', 5),
-        ('position_pct', 0.001),  # Not used, size always = 1
+        ('position_percent', 0.001),  # Not used, size always = 1
     )
     
     def __init__(self):

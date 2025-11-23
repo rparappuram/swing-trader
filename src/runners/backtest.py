@@ -185,7 +185,7 @@ class BacktestRunner:
             'initial_value': initial_cash,
             'final_value': final_value,
             'total_return': final_value - initial_cash,
-            'total_return_pct': (final_value - initial_cash) / initial_cash * 100,
+            'total_return_percent': (final_value - initial_cash) / initial_cash * 100,
             'returns': returns,
             'sharpe_ratio': sharpe.get('sharperatio', None),
             'max_drawdown': drawdown.get('max', {}).get('drawdown', None),
@@ -239,7 +239,7 @@ class BacktestRunner:
         print(f"Strategy: {results['strategy']}")
         print(f"Initial Value: ${results['initial_value']:,.2f}")
         print(f"Final Value: ${results['final_value']:,.2f}")
-        print(f"Total Return: ${results['total_return']:+,.2f} ({results['total_return_pct']:+.2f}%)")
+        print(f"Total Return: ${results['total_return']:+,.2f} ({results['total_return_percent']:+.2f}%)")
         
         if results['sharpe_ratio']:
             print(f"Sharpe Ratio: {results['sharpe_ratio']:.2f}")

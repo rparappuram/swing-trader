@@ -25,17 +25,17 @@ class SMAStrategy(BaseStrategy):
     OPTIMIZE_PARAMS = {
         'fast_period': range(5, 31, 5),
         'slow_period': range(20, 51, 10),
-        'trailing_stop_percent': [x / 100 for x in range(20, 201, 20)],
+        'trailing_stop_percent': [x / 10000 for x in range(200, 2001, 200)],  # 0.02 (2%) to 0.20 (20%)
     }
     
     # Default parameters (backtrader format)
     params = (
         ('tickers', ['SPY']),
         ('lookback_days', 60),
-        ('position_pct', 1.0),  # Use 100% of available cash per position
+        ('position_percent', 1.0),  # Use 100% of available cash per position
         ('fast_period', 10),
         ('slow_period', 30),
-        ('trailing_stop_percent', 1.0),
+        ('trailing_stop_percent', 0.05),  # 5% trailing stop
     )
     
     def __init__(self):
@@ -99,7 +99,7 @@ class SMAStrategy(BaseStrategy):
         price = self.datas[0].close[0]
         
         # Use percentage of available cash
-        size = int((cash * self.params.position_pct) / price)  # type: ignore[attr-defined]
+        size = int((cash * self.params.position_percent) / price)  # type: ignore[attr-defined]
         
         return size
     

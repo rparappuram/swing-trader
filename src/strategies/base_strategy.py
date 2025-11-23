@@ -28,8 +28,8 @@ class BaseStrategy(bt.Strategy):
     # Default parameters - subclasses should override
     params = (
         ('tickers', []),  # List of tickers to trade
-        ('position_pct', 1.0),  # Percentage of portfolio to allocate per position
-        ('trailing_stop_percent', 0.01),  # Trailing stop percentage (optional)
+        ('position_percent', 1.0),  # Percentage of portfolio to allocate per position
+        ('trailing_stop_percent', 0.01),  # Trailing stop percentage (1% as 0.01)
     )
     
     def __init__(self):
@@ -225,15 +225,15 @@ class BaseStrategy(bt.Strategy):
         For short positions: creates a buy stop order
         
         Args:
-            percent: Trailing stop percentage (e.g., 5.0 for 5%)
+            percent: Trailing stop percentage in decimal format (e.g., 0.05 for 5%)
         """
         if not self.position:
             return
         
         # Calculate stop price based on entry
         if self.entry_price:
-            trail_amount = self.entry_price * (percent / 100.0)
-            trail_percent = percent / 100.0
+            trail_amount = self.entry_price * percent
+            trail_percent = percent
             
             # Create a trailing stop order
             # Note: In backtest, this is a simple stop loss; real trailing stop would need broker support
@@ -260,4 +260,4 @@ class BaseStrategy(bt.Strategy):
                 self.trailing_stop_order_ids.add(trailing_stop_order.ref)
                 self.order_types[trailing_stop_order.ref] = 'trailing_stop'
             
-            self.log(f'TRAILING STOP SET ({direction}) - {percent}% @ ${stop_price:,.2f}, Shares: {position_size:,}')
+            self.log(f'TRAILING STOP SET ({direction}) - {percent * 100:.1f}% @ ${stop_price:,.2f}, Shares: {position_size:,}')

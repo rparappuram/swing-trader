@@ -135,7 +135,7 @@ python src/runners/optimize.py
 optimize_params:
   fast_period: [5, 10, 15, 20]
   slow_period: [20, 30, 40, 50]
-  trailing_stop_percent: [3.0, 5.0, 7.0]
+  trailing_stop_percent: [0.03, 0.05, 0.07]  # 3%, 5%, 7% in decimal format
 ```
 
 **Output**:

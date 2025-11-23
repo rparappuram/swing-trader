@@ -113,23 +113,19 @@ class OptimizationRunner:
         cerebro.broker.setcash(initial_cash)
         cerebro.broker.setcommission(commission=commission)
         
-        # Convert param ranges to backtrader format
-        # Backtrader expects: param_name=(val1, val2, val3, ...)
+        # Only use parameters specified in OPTIMIZE_PARAMS
+        # Convert to backtrader format: param_name=(val1, val2, val3, ...)
         bt_params = {}
         for param_name, param_values in param_ranges.items():
             bt_params[param_name] = tuple(param_values)
         
-        # Merge with fixed params from config
-        fixed_params = strategy_config.get('params', {})
-        for param_name, param_value in fixed_params.items():
-            if param_name not in bt_params:
-                bt_params[param_name] = param_value
-        
-        # Add optimized strategy
+        # Add optimized strategy - ONLY with parameters from OPTIMIZE_PARAMS
+        # The strategy will use its default values for any params not being optimized
         cerebro.optstrategy(strategy_class, **bt_params)
         
         # Load data for each ticker
-        tickers = strategy_config.get('tickers', [])
+        params = strategy_config.get('params', {})
+        tickers = params.get('tickers', [])
         
         for ticker in tickers:
             # Data loading handled by DataManager
@@ -339,9 +335,7 @@ class OptimizationRunner:
         final_value = cerebro.broker.getvalue()
         logger.info(f"Final value: ${final_value:,.2f} ({(final_value - initial_value) / initial_value * 100:+.2f}%)")
         
-        # Generate plot
-        logger.info("Generating plot...")
-        cerebro.plot()
+        # Note: Plotting skipped for optimization results to avoid errors
 
 
     def run(self) -> List[Dict[str, Any]]:

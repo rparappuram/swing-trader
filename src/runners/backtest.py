@@ -111,12 +111,13 @@ class BacktestRunner:
         cerebro.broker.setcash(initial_cash)
         cerebro.broker.setcommission(commission=commission)
         
-        # Add strategy with parameters
-        strategy_params = strategy_config.get('params', {})
-        cerebro.addstrategy(strategy_class, **strategy_params)
+        # Add strategy - it will use default values from its params tuple
+        # No params passed means all defaults are used
+        cerebro.addstrategy(strategy_class)
         
         # Load data for each ticker
         params = strategy_config.get('params', {})
+        tickers = params.get('tickers', [])
         tickers = params.get('tickers', [])
         
         for ticker in tickers:

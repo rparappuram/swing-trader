@@ -31,11 +31,11 @@ class SMAStrategy(BaseStrategy):
     # Default parameters (backtrader format)
     params = (
         ('tickers', ['SPY']),
-        ('lookback_days', 60),
+        ('lookback_days', 30),
         ('position_percent', 1.0),  # Use 100% of available cash per position
         ('fast_period', 10),
         ('slow_period', 30),
-        ('trailing_stop_percent', 0.05),  # 5% trailing stop
+        ('trailing_stop_percent', 0.001),  # 0.1% trailing stop
     )
     
     def __init__(self):

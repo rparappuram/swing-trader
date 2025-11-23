@@ -101,7 +101,18 @@ class OptimizationRunner:
         )
         
         logger.info(f"Optimizing {strategy_config['name']}")
-        logger.info(f"Parameters: {param_ranges}")
+        
+        # Calculate and display total combinations
+        total_combinations = 1
+        logger.info("\nParameter ranges to test:")
+        for param_name, param_values in param_ranges.items():
+            values_list = list(param_values)
+            total_combinations *= len(values_list)
+            logger.info(f"  {param_name}: {values_list}")
+            logger.info(f"    ({len(values_list)} values)")
+        
+        logger.info(f"\nTotal combinations to test: {total_combinations}")
+        logger.info("="*80)
         
         # Initialize cerebro for optimization
         cerebro = bt.Cerebro()
@@ -121,7 +132,8 @@ class OptimizationRunner:
         
         # Add optimized strategy - ONLY with parameters from OPTIMIZE_PARAMS
         # The strategy will use its default values for any params not being optimized
-        cerebro.optstrategy(strategy_class, **bt_params)
+        # Disable verbose logging during optimization to reduce noise
+        cerebro.optstrategy(strategy_class, verbose_logging=False, **bt_params)
         
         # Load data for each ticker
         params = strategy_config.get('params', {})
@@ -204,6 +216,9 @@ class OptimizationRunner:
         
         # Sort by metric (descending - higher is better)
         results.sort(key=lambda x: x['sort_value'], reverse=True)
+        
+        # Log completion summary
+        logger.info(f"\nOptimization complete: Tested {len(results)} parameter combinations")
         
         # Print top results
         self._print_optimization_results(results, metric, initial_cash, top_n=3)
@@ -335,7 +350,9 @@ class OptimizationRunner:
         final_value = cerebro.broker.getvalue()
         logger.info(f"Final value: ${final_value:,.2f} ({(final_value - initial_value) / initial_value * 100:+.2f}%)")
         
-        # Note: Plotting skipped for optimization results to avoid errors
+        # Generate plot with best parameters
+        logger.info("Generating plot for optimal parameters...")
+        cerebro.plot()
 
 
     def run(self) -> List[Dict[str, Any]]:

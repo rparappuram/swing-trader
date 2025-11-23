@@ -30,6 +30,7 @@ class BaseStrategy(bt.Strategy):
         ('tickers', []),  # List of tickers to trade
         ('position_percent', 1.0),  # Percentage of portfolio to allocate per position
         ('trailing_stop_percent', 0.01),  # Trailing stop percentage (1% as 0.01)
+        ('verbose_logging', True),  # Enable/disable detailed logging
     )
     
     def __init__(self):
@@ -126,6 +127,9 @@ class BaseStrategy(bt.Strategy):
             txt: Text to log
             dt: Datetime for log entry (uses current bar datetime if None)
         """
+        # Only log if verbose_logging is enabled
+        if not getattr(self.params, 'verbose_logging', True):
+            return
         dt = dt or self.datas[0].datetime.date(0)
         print(f'{dt.isoformat()} {txt}', flush=True)
     

@@ -117,13 +117,13 @@ class DataManager:
             return False
     
     def _fetch_from_alpaca(self, ticker: str, start_date: datetime, 
-                          end_date: datetime, timeframe: str) -> pd.DataFrame:
+                          end_date: Optional[datetime], timeframe: str) -> pd.DataFrame:
         """Fetch data from Alpaca API.
         
         Args:
             ticker: Stock ticker symbol
             start_date: Start date
-            end_date: End date
+            end_date: End date (optional - if None, defaults to latest available data)
             timeframe: 'daily' or 'minute'
             
         Returns:
@@ -140,12 +140,16 @@ class DataManager:
         else:
             tf: TimeFrame = TimeFrame(1, TimeFrameUnit.Minute)  # type: ignore[arg-type]
         
-        request = StockBarsRequest(
-            symbol_or_symbols=ticker,
-            timeframe=tf,
-            start=start_date,
-            end=end_date
-        )
+        # Build request - only include end if provided (for free plan compatibility)
+        request_params = {
+            'symbol_or_symbols': ticker,
+            'timeframe': tf,
+            'start': start_date,
+        }
+        if end_date is not None:
+            request_params['end'] = end_date
+        
+        request = StockBarsRequest(**request_params)
         
         bars = self.alpaca_client.get_stock_bars(request)
         df: pd.DataFrame = bars.df  # type: ignore[attr-defined]
@@ -248,12 +252,13 @@ class DataManager:
         Returns:
             DataFrame with OHLCV data indexed by timestamp
         """
-        end_date = datetime.now(timezone.utc)
-        start_date = end_date - timedelta(days=days_back + 10)  # Add buffer for weekends/holidays
+        # For live trading, don't specify end_date to get latest available data
+        # This works with free Alpaca plans that have 15-minute delayed data
+        start_date = datetime.now(timezone.utc) - timedelta(days=days_back + 10)  # Add buffer for weekends/holidays
         
         logger.info(f"Fetching live data for {ticker}")
         
-        return self._fetch_from_alpaca(ticker, start_date, end_date, 'daily')
+        return self._fetch_from_alpaca(ticker, start_date, None, 'daily')
     
     def save_data(self, ticker: str, df: pd.DataFrame, timeframe: str):
         """Save data to parquet file.

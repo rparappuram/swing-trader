@@ -1,0 +1,28 @@
+# Main System Configuration
+
+# Active strategy (must match strategy class NAME attribute)
+strategy: "SMAStrategy"
+
+# Data paths
+data:
+  daily_path: "data/daily"
+  minute_path: "data/minute"
+
+# Backtesting and Optimization settings
+backtest:
+  start_date: "2023-01-01"  # Start date for backtesting/optimization
+  end_date: "2023-12-31"    # End date for backtesting/optimization
+  initial_cash: 100000.0
+  commission: 0.001  # 0.1% commission
+
+# Live trading settings
+live:
+  max_positions: 5  # Maximum number of concurrent positions
+  position_size: 0.2  # 20% of portfolio per position
+
+# Note: Strategy configuration (tickers, params, optimize ranges) is now defined
+#       in the strategy class itself (see src/strategies/example_sma.py)
+#
+# Note: Paper vs live trading is controlled by ALPACA_BASE_URL environment variable
+#       Paper: https://paper-api.alpaca.markets
+#       Live:  https://api.alpaca.markets

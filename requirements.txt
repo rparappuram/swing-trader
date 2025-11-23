@@ -1,0 +1,12 @@
+# Core dependencies
+backtrader
+alpaca-py
+pandas
+numpy
+pyarrow  # For parquet support
+pyyaml
+python-dotenv
+
+# AWS Lambda support (lightweight for deployment)
+# These are included in Lambda runtime, but listed for local development
+boto3
